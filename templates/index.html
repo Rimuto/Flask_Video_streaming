@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Demo - background worker</title>
+        <script src="https://aframe.io/releases/1.0.0/aframe.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+        <script src="https://raw.githack.com/jeromeetienne/AR.js/2.0.5/aframe/build/aframe-ar.js"></script>
+
+        <script type="text/javascript" charset="utf-8">
+            $(document).ready(function() {
+                var namespace = "/work"
+                console.log("connect");
+                socketio = io.connect(
+                        location.protocol       +
+                        '//'                    +
+                        document.domain         +
+                        ':'                     +
+                        location.port           +
+                        namespace
+                    );
+
+                socketio.off().on("re_connect", function(msg) {
+                    $(".report").append(msg.msg + "<br />");
+                });
+
+                socketio.on("update", function(msg){
+                    //console.log(image)
+                    const image_element=document.getElementById('screen');
+                    image_element.src="data:image/jpeg;base64,"+msg.json;
+                });
+
+
+                $("input[name='start']").on("click", function() {
+                    socketio.emit("start");
+                });
+
+                $("input[name='stop']").on("click", function() {
+                    socketio.emit("stop");
+                });
+
+                $( "#form" ).submit(function(e) {
+                  e.preventDefault();
+                  var conceptName = $('#model').find(":selected").text();
+                  socketio.emit("selected", conceptName);
+                });
+            });
+
+        </script>
+
+    </head>
+
+    <body style="margin : 0px; overflow: hidden;">
+            <div class="control">
+             <form id = "form" method="post" style='position: fixed; top: 10px; width:100%; text-align: center;'>
+                <option disabled></option>
+                     {{form.csrf_token}}
+                     {{form.model}}
+                <input type="submit" value="Отправить">
+
+                <form id="ctrl_form" style='position: fixed; top: 10px; width:100%; text-align: center;'>
+                    <input type="button" name="start" value="start" />
+                </form>
+             </form>
+            </div>
+    <img id = "screen">
+    </body>
+</html>
+
+
+
